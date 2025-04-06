@@ -1,11 +1,12 @@
 package main
 
 import (
-	//"fyne.io/fyne"
+	"fmt"
+	"net/url"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/container"
 
-	//"fyne.io/fyne/v2"
 	"fyne.io/fyne/widget"
 
 	_ "modernc.org/sqlite"
@@ -60,11 +61,12 @@ func window_show_Reg(app fyne.App, parent_window fyne.Window) fyne.Window {
 	return regWindow
 }
 
-// ГЛАВНОЕ ОКНО
+/*ГЛАВНОЕ ОКНО*/
 func window_show_Base(app fyne.App, login string) fyne.Window {
 	books_name := []string{""}
-	basewin := app.NewWindow("Библиотека")
-	basewin.Resize(fyne.NewSize(400, 520))
+	basewin := app.NewWindow("Library.ru")
+	basewin.Resize(fyne.NewSize(520, 520))
+
 	//basewin.Canvas().Size().Width
 	//basewin.Content().Size().Width
 	list := widget.NewList(
@@ -79,12 +81,12 @@ func window_show_Base(app fyne.App, login string) fyne.Window {
 		})
 	//открываем окно с информацией о книге
 	list.OnSelected = func(id widget.ListItemID) {
-		information := window_show_book_info(app, basewin, books_name[id])
+		information := window_show_book_info(app, basewin, books_name[id], login)
 		information.Show()
 		//basewin.Hide()
 		//fmt.Println(books_name[id])
 	}
-
+	//basewin.Canvas().SetBackgroundColor(fyne.NewColor(0, 128, 255))
 	search := widget.NewEntry()
 	search.SetPlaceHolder("Поиск. Название или описание.")
 	btn_sea := widget.NewButton("Поиск", func() {
@@ -147,14 +149,18 @@ func window_show_new_book(app fyne.App, window_show_Base fyne.Window) fyne.Windo
 	author := widget.NewEntry()
 	author.SetPlaceHolder("Автор")
 
-	br_content := widget.NewEntry()
+	br_content := widget.NewMultiLineEntry()
 	br_content.SetPlaceHolder("Описание")
+	br_content.Wrapping = fyne.TextWrapBreak
 
 	date_release := widget.NewEntry()
 	date_release.SetPlaceHolder("Дата релиза")
 
 	link := widget.NewEntry()
-	link.SetPlaceHolder("ссылка")
+	link.SetPlaceHolder("Ссылка")
+
+	//link.SetPlaceHolder("ссылка")
+	//link.Wrapping = fyne.TextWrapBreak
 
 	// Кнопка отправки данных
 	bookBtn := widget.NewButton("Добавить", func() {
@@ -186,8 +192,10 @@ func window_show_new_book(app fyne.App, window_show_Base fyne.Window) fyne.Windo
 	return new_book
 }
 
+/*
+Окно личного кабинета
+*/
 func window_show_office(app fyne.App, window_show_Base fyne.Window, login string) fyne.Window {
-	//Окно личного кабинета
 	office := app.NewWindow("Личный кабинет")
 	office.Resize(fyne.NewSize(400, 320))
 	personal_account := widget.NewLabel("Личный кабинет")
@@ -221,8 +229,8 @@ func window_show_office(app fyne.App, window_show_Base fyne.Window, login string
 	return office
 }
 
-// про книгу
-func window_show_book_info(app fyne.App, window_show_Base fyne.Window, book_name string) fyne.Window {
+/*про книгу*/
+func window_show_book_info(app fyne.App, window_show_Base fyne.Window, book_name, login string) fyne.Window {
 	information := app.NewWindow("Информация")
 
 	//и щем книгу
@@ -234,7 +242,8 @@ func window_show_book_info(app fyne.App, window_show_Base fyne.Window, book_name
 	author := widget.NewLabel("")
 	date_release := widget.NewLabel("")
 	br_content := widget.NewLabel("")
-	link := widget.NewLabel("")
+	url, _ := url.ParseRequestURI("")
+	link := widget.NewHyperlink("Ссылка на произведение", url)
 	if len(books) == 0 {
 		name.SetText("Не найдено")
 		author.SetText("")
@@ -252,20 +261,28 @@ func window_show_book_info(app fyne.App, window_show_Base fyne.Window, book_name
 	//link.SetText(link.Text)
 	/////////////
 
+	//ОТЗЫВЫ
 	reviews := widget.NewLabel("Отзывы:")
 	//подгружаем отзывы из базы
 
 	//в цикле для каждого найденного отзыва выводим его в общее поле
-	reviews_arr := []string{"a", "b"} //подставить результат из функции выбирающзей все отзывы из базы
 	all_reviw_str := ""
-	for _, value := range reviews_arr {
-		all_reviw_str += value + "\n"
+	_, rev_arr := db_get_review(book_name)
 
+	fmt.Println("книга '" + book_name + "'")
+	fmt.Println("отзыв", rev_arr)
+
+	for _, val := range rev_arr {
+		all_reviw_str += val.user_name + ": " + val.text + "\n"
 	}
+
 	sep := widget.NewSeparator()
 	edt_leave_review := widget.NewMultiLineEntry()
 	edt_leave_review.SetText(all_reviw_str)
-	btn_leave_review := widget.NewButton("Оставить отзыв", func() {})
+	write := window_show_write_review(app, book_name, login)
+	btn_leave_review := widget.NewButton("Оставить отзыв", func() {
+		write.Show()
+	})
 
 	information.SetContent(container.NewVBox(
 		name,
@@ -283,4 +300,33 @@ func window_show_book_info(app fyne.App, window_show_Base fyne.Window, book_name
 		}),
 	))
 	return information
+}
+
+// Окно написания отзыва
+func window_show_write_review(app fyne.App, book_name, login string) fyne.Window {
+	write := app.NewWindow("Оставить отзыв")
+	write.Resize(fyne.NewSize(400, 320))
+	us_lb := widget.NewLabel("")
+	name_surname := widget.NewLabel("Имя пользователя: " + login)
+	text := widget.NewMultiLineEntry()
+	text.SetPlaceHolder("Ваш отзыв...")
+	text.Wrapping = fyne.TextWrapBreak
+	send_btn := widget.NewButton("Отправить", func() {
+		result, txt := db_write_a_review(book_name, login, text.Text)
+		if result {
+			write.Hide()
+		} else {
+			us_lb.SetText(txt)
+		}
+	})
+	write.SetContent(container.NewVBox(
+		name_surname,
+		text,
+		send_btn,
+		us_lb,
+		widget.NewButton("Назад", func() {
+			write.Show()
+		}),
+	))
+	return write
 }

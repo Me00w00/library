@@ -11,11 +11,11 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/fyne-io/mobile v0.1.2 // indirect
-	github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6 // indirect
-	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
-	github.com/godbus/dbus/v5 v5.1.0 // indirect
+	github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7 // indirect
+	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200625191551-73d3c3675aa3 // indirect
+	github.com/godbus/dbus/v5 v5.0.3 // indirect
 	github.com/goki/freetype v0.0.0-20181231101311-fa8a33aabaff // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

@@ -16,9 +16,9 @@ type book_s struct {
 	link         string
 }
 type reviw_s struct {
-	id      string
-	user_id string
-	text    string
+	id        string
+	user_name string
+	text      string
 }
 
 // подключаем к баззе данных чтобы искать книги
@@ -65,7 +65,15 @@ func db_set_book(name_book, author, br_content, date_release, link string) (bool
 	if len(name_book) < 2 {
 		return false, "Название слишком короткое"
 	}
-
+	if len(author) < 2 {
+		return false, "Напишите автора"
+	}
+	if len(br_content) < 2 {
+		return false, "Напишите хотя бы пару строк для описания"
+	}
+	if len(date_release) < 10 {
+		return false, "Напишите дату релиза"
+	}
 	//connect tp db
 	db, err := sql.Open("sqlite", "library.sqlite")
 	if err != nil {
@@ -83,7 +91,7 @@ func db_set_book(name_book, author, br_content, date_release, link string) (bool
 
 // Авторизация
 func db_get_user(login, pass string) (bool, string) {
-	if len(login) < 2 || len(pass) < 3 {
+	if len(login) < 5 || len(pass) < 6 {
 		return false, "Login, password to short."
 	}
 	pass_hash := GetMD5Hash(pass)
@@ -132,7 +140,7 @@ func GetMD5Hash(text string) string {
 // к кнопке регистрации
 // подключаемся к базе данных
 func db_set_user(login, pass, email string) (bool, string) {
-	if len(login) < 2 || len(pass) < 3 || len(email) < 3 {
+	if len(login) <= 4 || len(pass) <= 6 || len(email) <= 7 {
 		return false, "Login, password, email to short."
 	}
 
@@ -171,6 +179,7 @@ func db_save_user_office(login, name, surname string) (bool, string) {
 	return true, name
 }
 
+// инфо книги
 func db_get_book_info(name string) (bool, []book_s) {
 
 	//connect tp db
@@ -192,6 +201,63 @@ func db_get_book_info(name string) (bool, []book_s) {
 			return false, result
 		}
 		result = append(result, book)
+	}
+
+	if err = rows.Err(); err != nil {
+		return false, result
+	}
+
+	if err = db.Close(); err != nil {
+		return false, result
+	}
+
+	return true, result
+
+}
+
+// Отзывы
+func db_write_a_review(book, user, text string) (bool, string) {
+	if len(text) < 2 {
+		return false, "Напишите хотя бы одно слово:()"
+	}
+
+	//connect tp db
+	db, err := sql.Open("sqlite", "library.sqlite")
+	if err != nil {
+		return false, err.Error()
+	}
+	//делаем чтобы добавляло данные в базу, потом выводило что все ок, а если что то не так то выводило ошибку
+	if _, err = db.Exec("INSERT INTO feeback (book_name, user_name, text) VALUES ('" + book + "', '" + user + "', '" + text + "');"); err != nil {
+		return false, err.Error()
+	}
+	if err = db.Close(); err != nil {
+		return false, err.Error()
+	}
+	return true, text
+}
+
+// Отзывы под книгой
+func db_get_review(book string) (bool, []reviw_s) {
+
+	//connect tp db
+	db, err := sql.Open("sqlite", "library.sqlite")
+	result := []reviw_s{}
+	if err != nil {
+		return false, result
+	}
+	//делаем чтобы добавляло данные в базу, потом выводило что все ок, а если что то не так то выводило ошибку
+	rows, err := db.Query("select user_name, text from feeback where book_name = \"" + book + "\";")
+	if err != nil {
+		return false, result
+	}
+
+	//перебираем результат из БД
+	for rows.Next() {
+		review := reviw_s{}
+		if err = rows.Scan(&review.user_name, &review.text); err != nil {
+			return false, result
+		}
+		result = append(result, review)
 	}
 
 	if err = rows.Err(); err != nil {
