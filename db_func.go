@@ -91,7 +91,7 @@ func db_set_book(name_book, author, br_content, date_release, link string) (bool
 
 // Авторизация
 func db_get_user(login, pass string) (bool, string) {
-	if len(login) < 5 || len(pass) < 6 {
+	if len(login) < 4 || len(pass) < 6 {
 		return false, "Login, password to short."
 	}
 	pass_hash := GetMD5Hash(pass)

@@ -325,7 +325,7 @@ func window_show_write_review(app fyne.App, book_name, login string) fyne.Window
 		send_btn,
 		us_lb,
 		widget.NewButton("Назад", func() {
-			write.Show()
+			write.Hide()
 		}),
 	))
 	return write

@@ -28,7 +28,7 @@ func main() {
 	pass.Password = true
 	/* TEST*/
 	login.SetText("admin")
-	pass.SetText("1234")
+	pass.SetText("1234567")
 	/***********************/
 
 	regWindow := window_show_Reg(a, loginWindow)
